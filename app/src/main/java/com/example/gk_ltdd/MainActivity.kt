@@ -4,14 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.gk_ltdd.ui.screens.*
 import com.example.gk_ltdd.ui.theme.GK_LTDDTheme
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,29 +18,34 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GK_LTDDTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavigation()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val auth = FirebaseAuth.getInstance()
+    val startDestination = if (auth.currentUser != null) "user_list" else "login"
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GK_LTDDTheme {
-        Greeting("Android")
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable("login") {
+            LoginScreen(navController = navController)
+        }
+        composable("register") {
+            RegisterScreen(navController = navController)
+        }
+        composable("user_list") {
+            UserListScreen(navController = navController)
+        }
+        composable("add_user") {
+            AddEditUserScreen(navController = navController, userId = null)
+        }
+        composable("edit_user/{userId}") { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")
+            AddEditUserScreen(navController = navController, userId = userId)
+        }
     }
 }
